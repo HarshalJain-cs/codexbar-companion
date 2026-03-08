@@ -1,4 +1,4 @@
-import { Provider } from '@/types';
+import { Provider, ProviderId } from '@/types';
 import { providerLogos } from '@/data/providerLogos';
 import {
   AreaChart,
@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 interface UsageHistoryChartProps {
   providers: Provider[];
@@ -55,11 +55,34 @@ const CHART_COLORS: Record<string, string> = {
 
 export default function UsageHistoryChart({ providers, animationsEnabled = true }: UsageHistoryChartProps) {
   const [range, setRange] = useState<TimeRange>('8h');
+  const [visibleProviders, setVisibleProviders] = useState<Set<ProviderId>>(
+    () => new Set(providers.slice(0, 3).map(p => p.id))
+  );
   const [data] = useState(() => ({
     '8h': generateHistoryData(providers, '8h'),
     '24h': generateHistoryData(providers, '24h'),
     '7d': generateHistoryData(providers, '7d'),
   }));
+
+  const toggleProvider = (id: ProviderId) => {
+    setVisibleProviders(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        if (next.size > 1) next.delete(id); // keep at least 1
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const selectOnly = (id: ProviderId) => {
+    setVisibleProviders(new Set([id]));
+  };
+
+  const selectAll = () => {
+    setVisibleProviders(new Set(providers.map(p => p.id)));
+  };
 
   const ranges: { value: TimeRange; label: string }[] = [
     { value: '8h', label: '8h' },
@@ -67,32 +90,69 @@ export default function UsageHistoryChart({ providers, animationsEnabled = true 
     { value: '7d', label: '7d' },
   ];
 
+  const activeProviders = useMemo(
+    () => providers.filter(p => visibleProviders.has(p.id)),
+    [providers, visibleProviders]
+  );
+
   return (
     <div className="rounded-lg border border-border bg-card p-3">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <h3 className="text-xs font-semibold text-card-foreground">Usage History</h3>
-        <div className="flex rounded-md border border-border overflow-hidden">
-          {ranges.map(r => (
-            <button
-              key={r.value}
-              onClick={() => setRange(r.value)}
-              className={`px-2 py-0.5 text-[10px] font-medium transition-colors ${
-                range === r.value
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-secondary text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {r.label}
-            </button>
-          ))}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={selectAll}
+            className="text-[9px] text-muted-foreground hover:text-foreground transition-colors px-1.5 py-0.5 rounded border border-border hover:bg-secondary"
+          >
+            All
+          </button>
+          <div className="flex rounded-md border border-border overflow-hidden">
+            {ranges.map(r => (
+              <button
+                key={r.value}
+                onClick={() => setRange(r.value)}
+                className={`px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                  range === r.value
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
         </div>
+      </div>
+
+      {/* Toggleable provider chips */}
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        {providers.map(p => {
+          const active = visibleProviders.has(p.id);
+          return (
+            <button
+              key={p.id}
+              onClick={() => toggleProvider(p.id)}
+              onDoubleClick={() => selectOnly(p.id)}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-medium transition-all border ${
+                active
+                  ? 'border-transparent text-primary-foreground'
+                  : 'border-border text-muted-foreground hover:text-foreground bg-secondary/50'
+              }`}
+              style={active ? { background: CHART_COLORS[p.id] || 'hsl(var(--primary))' } : undefined}
+              title={`Click to toggle, double-click to solo ${p.name}`}
+            >
+              <img src={providerLogos[p.id]} alt={p.name} className="h-3 w-3 rounded-sm object-contain" />
+              {p.name}
+            </button>
+          );
+        })}
       </div>
 
       <div className="h-[140px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data[range]} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
             <defs>
-              {providers.map(p => (
+              {activeProviders.map(p => (
                 <linearGradient key={p.id} id={`gradient-${p.id}`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={CHART_COLORS[p.id] || 'hsl(var(--primary))'} stopOpacity={0.3} />
                   <stop offset="95%" stopColor={CHART_COLORS[p.id] || 'hsl(var(--primary))'} stopOpacity={0} />
@@ -124,7 +184,7 @@ export default function UsageHistoryChart({ providers, animationsEnabled = true 
               }}
               formatter={(value: number, name: string) => [`${value}%`, name.charAt(0).toUpperCase() + name.slice(1)]}
             />
-            {providers.map(p => (
+            {activeProviders.map(p => (
               <Area
                 key={p.id}
                 type="monotone"
@@ -140,18 +200,8 @@ export default function UsageHistoryChart({ providers, animationsEnabled = true 
         </ResponsiveContainer>
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-3 mt-2 px-1">
-        {providers.map(p => (
-          <div key={p.id} className="flex items-center gap-1.5">
-            <img src={providerLogos[p.id]} alt={p.name} className="h-3 w-3 rounded-sm object-contain" />
-            <span className="text-[9px] text-muted-foreground">{p.name}</span>
-            <span
-              className="h-1.5 w-1.5 rounded-full"
-              style={{ background: CHART_COLORS[p.id] || 'hsl(var(--primary))' }}
-            />
-          </div>
-        ))}
+      <div className="text-[9px] text-muted-foreground mt-1.5 text-center">
+        Click providers to toggle · Double-click to solo
       </div>
     </div>
   );
