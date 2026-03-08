@@ -3,6 +3,7 @@ import TrendChart from './TrendChart';
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, RefreshCw, GripVertical } from 'lucide-react';
 import CardContextMenu from './CardContextMenu';
+import { providerLogos } from '@/data/providerLogos';
 
 interface ProviderCardProps {
   provider: Provider;
