@@ -330,24 +330,46 @@ function ProvidersTab({
   settings: AppSettings;
   onUpdate: (u: Partial<AppSettings>) => void;
 }) {
-  const allProviders = ['codex', 'claude', 'cursor', 'gemini', 'copilot'] as const;
+  const allProviders: { id: ProviderId; name: string }[] = [
+    { id: 'codex', name: 'Codex' },
+    { id: 'claude', name: 'Claude' },
+    { id: 'cursor', name: 'Cursor' },
+    { id: 'gemini', name: 'Gemini' },
+    { id: 'copilot', name: 'Copilot' },
+  ];
   return (
-    <>
-      <div className="text-[10px] text-muted-foreground mb-2">Enable/disable providers. Drag cards on dashboard to reorder.</div>
-      {allProviders.map(id => (
-        <ToggleRow
-          key={id}
-          label={id.charAt(0).toUpperCase() + id.slice(1)}
-          checked={settings.enabledProviders.includes(id)}
-          onChange={enabled => {
-            const updated = enabled
-              ? [...settings.enabledProviders, id]
-              : settings.enabledProviders.filter(p => p !== id);
-            onUpdate({ enabledProviders: updated });
-          }}
-        />
+    <div className="space-y-2">
+      <div className="text-[10px] text-muted-foreground mb-3">Enable/disable providers. Drag cards on dashboard to reorder.</div>
+      {allProviders.map(p => (
+        <div key={p.id} className="flex items-center justify-between py-2 px-3 rounded-lg border border-border bg-card hover:bg-secondary/30 transition-colors">
+          <div className="flex items-center gap-2.5">
+            <img src={providerLogos[p.id]} alt={p.name} className="h-5 w-5 rounded-sm object-contain" />
+            <span className="text-xs font-medium text-card-foreground">{p.name}</span>
+          </div>
+          <button
+            onClick={() => {
+              const enabled = settings.enabledProviders.includes(p.id);
+              const updated = enabled
+                ? settings.enabledProviders.filter(x => x !== p.id)
+                : [...settings.enabledProviders, p.id];
+              onUpdate({ enabledProviders: updated });
+            }}
+            className={`relative h-5 w-9 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              settings.enabledProviders.includes(p.id) ? 'bg-primary' : 'bg-muted'
+            }`}
+            role="switch"
+            aria-checked={settings.enabledProviders.includes(p.id)}
+            aria-label={`Toggle ${p.name}`}
+          >
+            <span
+              className={`absolute top-0.5 h-4 w-4 rounded-full bg-primary-foreground shadow transition-transform ${
+                settings.enabledProviders.includes(p.id) ? 'translate-x-4' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </div>
       ))}
-    </>
+    </div>
   );
 }
 
