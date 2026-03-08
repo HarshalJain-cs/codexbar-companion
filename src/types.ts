@@ -1,6 +1,6 @@
 // CodexBar Types
 
-export type ProviderId = 'codex' | 'claude' | 'cursor' | 'gemini' | 'copilot';
+export type ProviderId = 'codex' | 'claude' | 'cursor' | 'gemini' | 'copilot' | 'windsurf' | 'kiro' | 'augment' | 'devin';
 
 export type TrendDirection = 'rising' | 'falling' | 'steady';
 
@@ -49,13 +49,13 @@ export type ViewMode = 'grid' | 'compact';
 
 export interface AppSettings {
   theme: ThemeMode;
-  refreshInterval: number; // seconds
+  refreshInterval: number;
   animationsEnabled: boolean;
   notificationType: NotificationType;
   notificationSound: NotificationSound;
   soundEnabled: boolean;
-  warningThreshold: number; // percent remaining
-  criticalThreshold: number; // percent remaining
+  warningThreshold: number;
+  criticalThreshold: number;
   launchAtStartup: boolean;
   globalShortcut: string;
   viewMode: ViewMode;

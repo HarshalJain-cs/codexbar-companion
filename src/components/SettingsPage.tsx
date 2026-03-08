@@ -336,6 +336,10 @@ function ProvidersTab({
     { id: 'cursor', name: 'Cursor' },
     { id: 'gemini', name: 'Gemini' },
     { id: 'copilot', name: 'Copilot' },
+    { id: 'windsurf', name: 'Windsurf' },
+    { id: 'kiro', name: 'Kiro' },
+    { id: 'augment', name: 'Augment' },
+    { id: 'devin', name: 'Devin' },
   ];
   return (
     <div className="space-y-2">
@@ -382,6 +386,10 @@ function AuthTab() {
     { id: 'cursor', name: 'Cursor', status: 'authenticated', type: 'Session Cookie', lastAuth: '5 hours ago' },
     { id: 'gemini', name: 'Gemini', status: 'expired', type: 'OAuth 2.0', lastAuth: '3 days ago' },
     { id: 'copilot', name: 'Copilot', status: 'authenticated', type: 'GitHub CLI', lastAuth: '12 hours ago' },
+    { id: 'windsurf', name: 'Windsurf', status: 'authenticated', type: 'API Key', lastAuth: '6 hours ago' },
+    { id: 'kiro', name: 'Kiro', status: 'authenticated', type: 'OAuth 2.0', lastAuth: '1 day ago' },
+    { id: 'augment', name: 'Augment', status: 'not_configured', type: 'API Key', lastAuth: 'Never' },
+    { id: 'devin', name: 'Devin', status: 'authenticated', type: 'OAuth 2.0', lastAuth: '3 hours ago' },
   ];
 
   const handleTest = async (name: string) => {

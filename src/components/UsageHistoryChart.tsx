@@ -47,6 +47,10 @@ const CHART_COLORS: Record<string, string> = {
   cursor: 'hsl(142, 71%, 45%)',
   gemini: 'hsl(262, 83%, 58%)',
   copilot: 'hsl(195, 85%, 50%)',
+  windsurf: 'hsl(175, 70%, 45%)',
+  kiro: 'hsl(20, 85%, 55%)',
+  augment: 'hsl(155, 70%, 50%)',
+  devin: 'hsl(270, 70%, 55%)',
 };
 
 export default function UsageHistoryChart({ providers, animationsEnabled = true }: UsageHistoryChartProps) {
@@ -90,8 +94,8 @@ export default function UsageHistoryChart({ providers, animationsEnabled = true 
             <defs>
               {providers.map(p => (
                 <linearGradient key={p.id} id={`gradient-${p.id}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={CHART_COLORS[p.id]} stopOpacity={0.3} />
-                  <stop offset="95%" stopColor={CHART_COLORS[p.id]} stopOpacity={0} />
+                  <stop offset="5%" stopColor={CHART_COLORS[p.id] || 'hsl(var(--primary))'} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={CHART_COLORS[p.id] || 'hsl(var(--primary))'} stopOpacity={0} />
                 </linearGradient>
               ))}
             </defs>
@@ -125,7 +129,7 @@ export default function UsageHistoryChart({ providers, animationsEnabled = true 
                 key={p.id}
                 type="monotone"
                 dataKey={p.id}
-                stroke={CHART_COLORS[p.id]}
+                stroke={CHART_COLORS[p.id] || 'hsl(var(--primary))'}
                 strokeWidth={1.5}
                 fill={`url(#gradient-${p.id})`}
                 isAnimationActive={animationsEnabled}
@@ -144,7 +148,7 @@ export default function UsageHistoryChart({ providers, animationsEnabled = true 
             <span className="text-[9px] text-muted-foreground">{p.name}</span>
             <span
               className="h-1.5 w-1.5 rounded-full"
-              style={{ background: CHART_COLORS[p.id] }}
+              style={{ background: CHART_COLORS[p.id] || 'hsl(var(--primary))' }}
             />
           </div>
         ))}
