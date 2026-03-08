@@ -77,7 +77,7 @@ export default function ProviderCard({
             {draggable && (
               <GripVertical size={12} className="text-muted-foreground flex-shrink-0 cursor-grab" aria-hidden="true" />
             )}
-            <span className="text-base flex-shrink-0" role="img" aria-label={provider.name}>{provider.icon}</span>
+            <img src={providerLogos[provider.id]} alt={provider.name} className="h-5 w-5 flex-shrink-0 rounded-sm object-contain" />
             <span className="text-sm font-semibold text-card-foreground truncate">{provider.name}</span>
             <span className={`h-2 w-2 rounded-full flex-shrink-0 ${statusDotClass}`} aria-label={`Status: ${provider.statusInfo.status}`} />
           </div>
