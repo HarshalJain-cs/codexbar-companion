@@ -354,7 +354,7 @@ function ProvidersTab({
                 : [...settings.enabledProviders, p.id];
               onUpdate({ enabledProviders: updated });
             }}
-            className={`relative h-5 w-9 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+            className={`relative inline-flex h-[22px] w-[40px] shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
               settings.enabledProviders.includes(p.id) ? 'bg-primary' : 'bg-muted'
             }`}
             role="switch"
@@ -362,8 +362,8 @@ function ProvidersTab({
             aria-label={`Toggle ${p.name}`}
           >
             <span
-              className={`absolute top-0.5 h-4 w-4 rounded-full bg-primary-foreground shadow transition-transform ${
-                settings.enabledProviders.includes(p.id) ? 'translate-x-4' : 'translate-x-0.5'
+              className={`pointer-events-none block h-[18px] w-[18px] rounded-full bg-primary-foreground shadow-sm ring-0 transition-transform mt-[2px] ${
+                settings.enabledProviders.includes(p.id) ? 'translate-x-[20px]' : 'translate-x-[2px]'
               }`}
             />
           </button>
