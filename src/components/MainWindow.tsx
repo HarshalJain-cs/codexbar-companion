@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useProviders } from '@/hooks/useProviders';
 import { useSettings } from '@/hooks/useSettings';
 import { ProviderId } from '@/types';
