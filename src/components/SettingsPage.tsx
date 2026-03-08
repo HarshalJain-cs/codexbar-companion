@@ -352,26 +352,56 @@ function ProvidersTab({
 }
 
 function AuthTab() {
-  const providers = [
-    { name: 'Codex', status: 'authenticated' as const, type: 'CLI' },
-    { name: 'Claude', status: 'authenticated' as const, type: 'OAuth' },
-    { name: 'Cursor', status: 'authenticated' as const, type: 'Cookie' },
-    { name: 'Gemini', status: 'expired' as const, type: 'OAuth' },
-    { name: 'Copilot', status: 'authenticated' as const, type: 'CLI' },
+  const [testing, setTesting] = useState<string | null>(null);
+
+  const providers: { id: ProviderId; name: string; status: 'authenticated' | 'expired' | 'not_configured'; type: string; lastAuth: string }[] = [
+    { id: 'codex', name: 'Codex', status: 'authenticated', type: 'CLI Token', lastAuth: '2 days ago' },
+    { id: 'claude', name: 'Claude', status: 'authenticated', type: 'OAuth 2.0', lastAuth: '1 hour ago' },
+    { id: 'cursor', name: 'Cursor', status: 'authenticated', type: 'Session Cookie', lastAuth: '5 hours ago' },
+    { id: 'gemini', name: 'Gemini', status: 'expired', type: 'OAuth 2.0', lastAuth: '3 days ago' },
+    { id: 'copilot', name: 'Copilot', status: 'authenticated', type: 'GitHub CLI', lastAuth: '12 hours ago' },
   ];
 
+  const handleTest = async (name: string) => {
+    setTesting(name);
+    await new Promise(r => setTimeout(r, 1200));
+    setTesting(null);
+    toast.success(`${name} connection verified`);
+  };
+
+  const StatusIcon = ({ status }: { status: string }) => {
+    if (status === 'authenticated') return <Shield size={14} className="text-cb-success" />;
+    if (status === 'expired') return <ShieldAlert size={14} className="text-cb-warning" />;
+    return <ShieldX size={14} className="text-cb-critical" />;
+  };
+
   return (
-    <>
-      <div className="text-[10px] text-muted-foreground mb-2">Provider authentication status</div>
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 mb-3">
+        <Key size={14} className="text-muted-foreground" />
+        <span className="text-xs font-semibold text-card-foreground">Credential Management</span>
+      </div>
+
       {providers.map(p => (
-        <div key={p.name} className="flex items-center justify-between py-2 border-b border-border last:border-b-0">
-          <div>
-            <span className="text-xs font-medium text-card-foreground">{p.name}</span>
-            <span className="text-[10px] text-muted-foreground ml-1.5">({p.type})</span>
-          </div>
-          <div className="flex items-center gap-2">
+        <div
+          key={p.name}
+          className={`rounded-lg border p-3 transition-colors ${
+            p.status === 'expired'
+              ? 'border-cb-warning/30 bg-cb-warning/5'
+              : 'border-border bg-card hover:bg-secondary/30'
+          }`}
+        >
+          <div className="flex items-center gap-2.5 mb-2">
+            <img src={providerLogos[p.id]} alt={p.name} className="h-5 w-5 rounded-sm object-contain" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-card-foreground">{p.name}</span>
+                <StatusIcon status={p.status} />
+              </div>
+              <span className="text-[10px] text-muted-foreground">{p.type}</span>
+            </div>
             <span
-              className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+              className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${
                 p.status === 'authenticated'
                   ? 'cb-badge-operational'
                   : p.status === 'expired'
@@ -379,18 +409,47 @@ function AuthTab() {
                   : 'cb-badge-unknown'
               }`}
             >
-              {p.status === 'authenticated' ? 'Authenticated' : p.status === 'expired' ? 'Expired' : 'Not configured'}
+              {p.status === 'authenticated' ? '● Connected' : p.status === 'expired' ? '● Expired' : '○ Not Set'}
             </span>
-            <button
-              onClick={() => toast.success(`${p.name} connection test passed`)}
-              className="text-[10px] text-primary hover:text-primary/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-            >
-              Test
-            </button>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-muted-foreground">
+              Last authenticated: {p.lastAuth}
+            </span>
+            <div className="flex items-center gap-1.5">
+              {p.status === 'expired' && (
+                <button
+                  className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-cb-warning/15 text-cb-warning hover:bg-cb-warning/25 transition-colors"
+                  onClick={() => toast.info(`Re-authenticate ${p.name} in your terminal`)}
+                >
+                  Re-auth
+                </button>
+              )}
+              <button
+                onClick={() => handleTest(p.name)}
+                disabled={testing === p.name}
+                className="flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50"
+              >
+                {testing === p.name ? (
+                  <RefreshCw size={10} className="animate-spin" />
+                ) : (
+                  <CheckCircle2 size={10} />
+                )}
+                {testing === p.name ? 'Testing...' : 'Test'}
+              </button>
+            </div>
           </div>
         </div>
       ))}
-    </>
+
+      <div className="mt-4 p-3 rounded-lg border border-border bg-secondary/30">
+        <div className="text-[10px] font-semibold text-card-foreground mb-1">Security Note</div>
+        <div className="text-[10px] text-muted-foreground leading-relaxed">
+          Credentials are stored locally in your system keychain. CodexBar never transmits auth tokens to external servers.
+        </div>
+      </div>
+    </div>
   );
 }
 
