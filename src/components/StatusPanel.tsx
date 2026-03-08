@@ -27,7 +27,7 @@ function timeAgo(ts: number) {
 
 export default function StatusPanel({ providers }: StatusPanelProps) {
   const hasIssue = providers.some(p => p.statusInfo.status !== 'operational');
-  const [expanded, setExpanded] = useState(hasIssue);
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="border-t border-border bg-card">
