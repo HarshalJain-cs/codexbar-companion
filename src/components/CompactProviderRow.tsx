@@ -1,4 +1,5 @@
 import { Provider } from '@/types';
+import { providerLogos } from '@/data/providerLogos';
 
 interface CompactProviderRowProps {
   provider: Provider;
@@ -31,7 +32,7 @@ export default function CompactProviderRow({
 
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 border-b border-border last:border-b-0 hover:bg-secondary/50 transition-colors">
-      <span className="text-sm flex-shrink-0">{provider.icon}</span>
+      <img src={providerLogos[provider.id]} alt={provider.name} className="h-4 w-4 flex-shrink-0 rounded-sm object-contain" />
       <span className="text-xs font-medium text-card-foreground flex-1 min-w-0 truncate">
         {provider.name}
       </span>
