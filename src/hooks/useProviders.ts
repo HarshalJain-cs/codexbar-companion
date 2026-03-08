@@ -16,8 +16,13 @@ export function useProviders(refreshInterval: number = 30) {
   const [lastRefresh, setLastRefresh] = useState<number>(Date.now());
   const [refreshLogs, setRefreshLogs] = useState<RefreshLog[]>([]);
   const [countdown, setCountdown] = useState(refreshInterval);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const refreshIntervalRef = useRef(refreshInterval);
+
+  // Keep ref in sync
+  useEffect(() => {
+    refreshIntervalRef.current = refreshInterval;
+    setCountdown(refreshInterval);
+  }, [refreshInterval]);
 
   // Simulate initial load
   useEffect(() => {
@@ -46,9 +51,9 @@ export function useProviders(refreshInterval: number = 30) {
     const duration = Date.now() - start;
     addLog('all', true, duration);
     setLastRefresh(Date.now());
-    setCountdown(refreshInterval);
+    setCountdown(refreshIntervalRef.current);
     setIsRefreshing(false);
-  }, [refreshInterval, addLog]);
+  }, [addLog]);
 
   const refreshProvider = useCallback(async (id: string) => {
     const start = Date.now();
@@ -68,11 +73,10 @@ export function useProviders(refreshInterval: number = 30) {
       )
     );
     const duration = Date.now() - start;
-    const name = providers.find(p => p.id === id)?.name || id;
-    addLog(name, true, duration);
+    addLog(id, true, duration);
     setLastRefresh(Date.now());
     setIsRefreshing(false);
-  }, [providers, addLog]);
+  }, [addLog]);
 
   const disableProvider = useCallback((id: ProviderId) => {
     setProviders(prev => prev.map(p => p.id === id ? { ...p, enabled: false } : p));
@@ -80,22 +84,19 @@ export function useProviders(refreshInterval: number = 30) {
 
   // Auto-refresh
   useEffect(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
+    const id = setInterval(() => {
       refresh();
     }, refreshInterval * 1000);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    return () => clearInterval(id);
   }, [refreshInterval, refresh]);
 
-  // Countdown
+  // Countdown timer
   useEffect(() => {
-    if (countdownRef.current) clearInterval(countdownRef.current);
-    setCountdown(refreshInterval);
-    countdownRef.current = setInterval(() => {
-      setCountdown(prev => (prev <= 1 ? refreshInterval : prev - 1));
+    const id = setInterval(() => {
+      setCountdown(prev => (prev <= 1 ? refreshIntervalRef.current : prev - 1));
     }, 1000);
-    return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
-  }, [refreshInterval, lastRefresh]);
+    return () => clearInterval(id);
+  }, []);
 
   return {
     providers,
