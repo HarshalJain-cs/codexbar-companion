@@ -1,4 +1,5 @@
-import { RefreshCw, Settings } from 'lucide-react';
+import { RefreshCw, Settings, Sun, Moon } from 'lucide-react';
+import { ThemeMode } from '@/types';
 
 interface AppHeaderProps {
   isRefreshing: boolean;
@@ -6,9 +7,13 @@ interface AppHeaderProps {
   countdown: number;
   onRefresh: () => void;
   onOpenSettings: () => void;
+  theme: ThemeMode;
+  onToggleTheme: () => void;
 }
 
-export default function AppHeader({ isRefreshing, lastRefresh, countdown, onRefresh, onOpenSettings }: AppHeaderProps) {
+export default function AppHeader({ isRefreshing, lastRefresh, countdown, onRefresh, onOpenSettings, theme, onToggleTheme }: AppHeaderProps) {
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
   return (
     <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-card">
       <div className="flex items-center gap-2">
@@ -30,6 +35,13 @@ export default function AppHeader({ isRefreshing, lastRefresh, countdown, onRefr
         </div>
       </div>
       <div className="flex items-center gap-0.5">
+        <button
+          onClick={onToggleTheme}
+          className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+        >
+          {isDark ? <Sun size={14} /> : <Moon size={14} />}
+        </button>
         <button
           onClick={onRefresh}
           disabled={isRefreshing}

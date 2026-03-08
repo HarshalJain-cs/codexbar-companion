@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useProviders } from '@/hooks/useProviders';
 import { useSettings } from '@/hooks/useSettings';
-import { ProviderId } from '@/types';
+import { ProviderId, ThemeMode } from '@/types';
 import AppHeader from '@/components/AppHeader';
 import ProviderCard from '@/components/ProviderCard';
 import CompactProviderRow from '@/components/CompactProviderRow';
@@ -10,6 +10,7 @@ import StatusPanel from '@/components/StatusPanel';
 import SettingsPage from '@/components/SettingsPage';
 import NotificationBanner, { useNotifications } from '@/components/NotificationBanner';
 import DiagnosticsPanel from '@/components/DiagnosticsPanel';
+import UsageHistoryChart from '@/components/UsageHistoryChart';
 
 type View = 'dashboard' | 'settings';
 
@@ -144,6 +145,11 @@ export default function MainWindow() {
             countdown={countdown}
             onRefresh={refresh}
             onOpenSettings={() => setView('settings')}
+            theme={settings.theme}
+            onToggleTheme={() => {
+              const next: ThemeMode = settings.theme === 'dark' ? 'light' : settings.theme === 'light' ? 'system' : 'dark';
+              updateSettings({ theme: next });
+            }}
           />
 
           {/* Notification banners */}
@@ -213,6 +219,16 @@ export default function MainWindow() {
                     onDrop={handleDrop}
                   />
                 ))}
+              </div>
+            )}
+
+            {/* Usage history chart */}
+            {!isLoading && sortedProviders.length > 0 && (
+              <div className="mt-3">
+                <UsageHistoryChart
+                  providers={sortedProviders}
+                  animationsEnabled={settings.animationsEnabled}
+                />
               </div>
             )}
           </div>
