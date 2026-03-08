@@ -1,4 +1,5 @@
 import { Provider } from '@/types';
+import { providerLogos } from '@/data/providerLogos';
 
 interface CompactProviderRowProps {
   provider: Provider;
