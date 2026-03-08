@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useProviders } from '@/hooks/useProviders';
 import { useSettings } from '@/hooks/useSettings';
-import { ProviderId } from '@/types';
+import { ProviderId, ThemeMode } from '@/types';
 import AppHeader from '@/components/AppHeader';
 import ProviderCard from '@/components/ProviderCard';
 import CompactProviderRow from '@/components/CompactProviderRow';
@@ -10,6 +10,7 @@ import StatusPanel from '@/components/StatusPanel';
 import SettingsPage from '@/components/SettingsPage';
 import NotificationBanner, { useNotifications } from '@/components/NotificationBanner';
 import DiagnosticsPanel from '@/components/DiagnosticsPanel';
+import UsageHistoryChart from '@/components/UsageHistoryChart';
 
 type View = 'dashboard' | 'settings';
 
