@@ -71,16 +71,20 @@ export default function MainWindow() {
     }
   }, []);
 
-  const enabledProviders = providers.filter(p =>
-    settings.enabledProviders.includes(p.id)
+  const enabledProviders = useMemo(
+    () => providers.filter(p => settings.enabledProviders.includes(p.id)),
+    [providers, settings.enabledProviders]
   );
 
   // Sort by providerOrder
-  const sortedProviders = [...enabledProviders].sort((a, b) => {
-    const ai = settings.providerOrder.indexOf(a.id);
-    const bi = settings.providerOrder.indexOf(b.id);
-    return ai - bi;
-  });
+  const sortedProviders = useMemo(
+    () => [...enabledProviders].sort((a, b) => {
+      const ai = settings.providerOrder.indexOf(a.id);
+      const bi = settings.providerOrder.indexOf(b.id);
+      return ai - bi;
+    }),
+    [enabledProviders, settings.providerOrder]
+  );
 
   const { notifications, dismiss } = useNotifications(
     enabledProviders,
