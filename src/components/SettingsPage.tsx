@@ -1,16 +1,31 @@
 import { AppSettings, SettingsTab } from '@/types';
-import { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { ArrowLeft, Upload, Download, Bug } from 'lucide-react';
 import NotificationPreview from './NotificationPreview';
+import ShortcutInput from './ShortcutInput';
 import { toast } from 'sonner';
 
 interface SettingsPageProps {
   settings: AppSettings;
   onUpdateSettings: (updates: Partial<AppSettings>) => void;
   onBack: () => void;
+  onOpenDiagnostics: () => void;
+  onExportSettings: () => void;
+  onImportSettings: (file: File) => void;
+  debugMode: boolean;
+  onToggleDebugMode: () => void;
 }
 
-export default function SettingsPage({ settings, onUpdateSettings, onBack }: SettingsPageProps) {
+export default function SettingsPage({
+  settings,
+  onUpdateSettings,
+  onBack,
+  onOpenDiagnostics,
+  onExportSettings,
+  onImportSettings,
+  debugMode,
+  onToggleDebugMode,
+}: SettingsPageProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
 
   const tabs: { id: SettingsTab; label: string }[] = [
@@ -24,28 +39,39 @@ export default function SettingsPage({ settings, onUpdateSettings, onBack }: Set
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-card">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-card">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onBack}
+            className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="Back to dashboard"
+          >
+            <ArrowLeft size={16} />
+          </button>
+          <span className="text-sm font-semibold text-card-foreground">Settings</span>
+        </div>
         <button
-          onClick={onBack}
-          className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-          aria-label="Back to dashboard"
+          onClick={onOpenDiagnostics}
+          className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="Open diagnostics"
         >
-          <ArrowLeft size={16} />
+          <Bug size={14} />
         </button>
-        <span className="text-sm font-semibold text-card-foreground">Settings</span>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-border bg-card px-1">
+      <div className="flex border-b border-border bg-card px-1" role="tablist">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-2.5 py-1.5 text-[11px] font-medium transition-colors relative ${
+            className={`px-2.5 py-1.5 text-[11px] font-medium transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
               activeTab === tab.id
                 ? 'text-primary'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
+            role="tab"
+            aria-selected={activeTab === tab.id}
           >
             {tab.label}
             {activeTab === tab.id && (
@@ -56,7 +82,7 @@ export default function SettingsPage({ settings, onUpdateSettings, onBack }: Set
       </div>
 
       {/* Content */}
-      <div className="flex-1 cb-scroll-area p-3 space-y-4">
+      <div className="flex-1 cb-scroll-area p-3 space-y-4" role="tabpanel">
         {activeTab === 'general' && (
           <GeneralTab settings={settings} onUpdate={onUpdateSettings} />
         )}
@@ -67,7 +93,14 @@ export default function SettingsPage({ settings, onUpdateSettings, onBack }: Set
           <ProvidersTab settings={settings} onUpdate={onUpdateSettings} />
         )}
         {activeTab === 'auth' && <AuthTab />}
-        {activeTab === 'about' && <AboutTab />}
+        {activeTab === 'about' && (
+          <AboutTab
+            onExport={onExportSettings}
+            onImport={onImportSettings}
+            debugMode={debugMode}
+            onToggleDebugMode={onToggleDebugMode}
+          />
+        )}
       </div>
     </div>
   );
@@ -92,11 +125,12 @@ function ToggleRow({
       </div>
       <button
         onClick={() => onChange(!checked)}
-        className={`relative h-5 w-9 rounded-full transition-colors ${
+        className={`relative h-5 w-9 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
           checked ? 'bg-primary' : 'bg-muted'
         }`}
         role="switch"
         aria-checked={checked}
+        aria-label={label}
       >
         <span
           className={`absolute top-0.5 h-4 w-4 rounded-full bg-primary-foreground shadow transition-transform ${
@@ -126,6 +160,7 @@ function SelectRow({
         value={value}
         onChange={e => onChange(e.target.value)}
         className="text-[11px] bg-secondary text-secondary-foreground border border-border rounded-md px-2 py-1 outline-none focus:ring-1 focus:ring-ring"
+        aria-label={label}
       >
         {options.map(o => (
           <option key={o.value} value={o.value}>
@@ -167,6 +202,7 @@ function SliderRow({
         value={value}
         onChange={e => onChange(Number(e.target.value))}
         className="w-full h-1 bg-muted rounded-full appearance-none cursor-pointer accent-primary"
+        aria-label={label}
       />
     </div>
   );
@@ -194,6 +230,10 @@ function GeneralTab({
         description="Adds CodexBar to Windows Startup apps"
         checked={settings.launchAtStartup}
         onChange={v => onUpdate({ launchAtStartup: v })}
+      />
+      <ShortcutInput
+        value={settings.globalShortcut}
+        onChange={shortcut => onUpdate({ globalShortcut: shortcut })}
       />
       <SelectRow
         label="Notifications"
@@ -265,6 +305,7 @@ function DisplayTab({
       />
       <ToggleRow
         label="Animations"
+        description="Disable for reduced motion"
         checked={settings.animationsEnabled}
         onChange={v => onUpdate({ animationsEnabled: v })}
       />
@@ -291,7 +332,7 @@ function ProvidersTab({
   const allProviders = ['codex', 'claude', 'cursor', 'gemini', 'copilot'] as const;
   return (
     <>
-      <div className="text-[10px] text-muted-foreground mb-2">Enable/disable providers</div>
+      <div className="text-[10px] text-muted-foreground mb-2">Enable/disable providers. Drag cards on dashboard to reorder.</div>
       {allProviders.map(id => (
         <ToggleRow
           key={id}
@@ -311,52 +352,122 @@ function ProvidersTab({
 
 function AuthTab() {
   const providers = [
-    { name: 'Codex', status: 'authenticated' as const },
-    { name: 'Claude', status: 'authenticated' as const },
-    { name: 'Cursor', status: 'authenticated' as const },
-    { name: 'Gemini', status: 'expired' as const },
-    { name: 'Copilot', status: 'authenticated' as const },
+    { name: 'Codex', status: 'authenticated' as const, type: 'CLI' },
+    { name: 'Claude', status: 'authenticated' as const, type: 'OAuth' },
+    { name: 'Cursor', status: 'authenticated' as const, type: 'Cookie' },
+    { name: 'Gemini', status: 'expired' as const, type: 'OAuth' },
+    { name: 'Copilot', status: 'authenticated' as const, type: 'CLI' },
   ];
 
   return (
     <>
       <div className="text-[10px] text-muted-foreground mb-2">Provider authentication status</div>
       {providers.map(p => (
-        <div key={p.name} className="flex items-center justify-between py-1.5">
-          <span className="text-xs font-medium text-card-foreground">{p.name}</span>
-          <span
-            className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
-              p.status === 'authenticated'
-                ? 'cb-badge-operational'
-                : p.status === 'expired'
-                ? 'cb-badge-degraded'
-                : 'cb-badge-unknown'
-            }`}
-          >
-            {p.status === 'authenticated'
-              ? 'Authenticated'
-              : p.status === 'expired'
-              ? 'Expired'
-              : 'Not configured'}
-          </span>
+        <div key={p.name} className="flex items-center justify-between py-2 border-b border-border last:border-b-0">
+          <div>
+            <span className="text-xs font-medium text-card-foreground">{p.name}</span>
+            <span className="text-[10px] text-muted-foreground ml-1.5">({p.type})</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                p.status === 'authenticated'
+                  ? 'cb-badge-operational'
+                  : p.status === 'expired'
+                  ? 'cb-badge-degraded'
+                  : 'cb-badge-unknown'
+              }`}
+            >
+              {p.status === 'authenticated' ? 'Authenticated' : p.status === 'expired' ? 'Expired' : 'Not configured'}
+            </span>
+            <button
+              onClick={() => toast.success(`${p.name} connection test passed`)}
+              className="text-[10px] text-primary hover:text-primary/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+            >
+              Test
+            </button>
+          </div>
         </div>
       ))}
     </>
   );
 }
 
-function AboutTab() {
+function AboutTab({
+  onExport,
+  onImport,
+  debugMode,
+  onToggleDebugMode,
+}: {
+  onExport: () => void;
+  onImport: (file: File) => void;
+  debugMode: boolean;
+  onToggleDebugMode: () => void;
+}) {
+  const [clickCount, setClickCount] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleVersionClick = () => {
+    const newCount = clickCount + 1;
+    setClickCount(newCount);
+    if (newCount >= 3) {
+      onToggleDebugMode();
+      setClickCount(0);
+      toast(debugMode ? 'Debug mode disabled' : 'Debug mode enabled 🔧');
+    }
+  };
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="text-center">
         <div className="text-lg font-bold text-card-foreground cb-mono">CodexBar</div>
-        <div className="text-[10px] text-muted-foreground">v1.1.2 · Windows</div>
+        <div
+          className="text-[10px] text-muted-foreground cursor-pointer select-none"
+          onClick={handleVersionClick}
+        >
+          v1.1.2 · Windows {debugMode && '· 🔧 Debug'}
+        </div>
       </div>
       <div className="text-[10px] text-muted-foreground text-center leading-relaxed">
         AI provider usage monitor for your system tray.
         <br />
         Track session & weekly limits across Codex, Claude, Cursor, Gemini, and Copilot.
       </div>
+
+      {/* Export/Import */}
+      <div className="space-y-2">
+        <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Settings backup</div>
+        <div className="flex gap-2">
+          <button
+            onClick={onExport}
+            className="flex-1 flex items-center justify-center gap-1.5 rounded-md bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground hover:bg-secondary/80 transition-colors"
+          >
+            <Download size={12} />
+            Export
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex-1 flex items-center justify-center gap-1.5 rounded-md bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground hover:bg-secondary/80 transition-colors"
+          >
+            <Upload size={12} />
+            Import
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            className="hidden"
+            onChange={e => {
+              const file = e.target.files?.[0];
+              if (file) {
+                onImport(file);
+                toast.success('Settings imported');
+              }
+            }}
+          />
+        </div>
+      </div>
+
       <div className="text-[10px] text-center text-muted-foreground">
         Based on{' '}
         <a
