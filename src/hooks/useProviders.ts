@@ -1,31 +1,57 @@
-import { useState, useCallback, useEffect } from 'react';
-import { Provider } from '@/types';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { Provider, ProviderId } from '@/types';
 import { mockProviders } from '@/data/mockData';
 
-export function useProviders() {
+export interface RefreshLog {
+  provider: string;
+  timestamp: number;
+  success: boolean;
+  duration: number;
+}
+
+export function useProviders(refreshInterval: number = 30) {
   const [providers, setProviders] = useState<Provider[]>(mockProviders);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<number>(Date.now());
+  const [refreshLogs, setRefreshLogs] = useState<RefreshLog[]>([]);
+  const [countdown, setCountdown] = useState(refreshInterval);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Simulate initial load
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const addLog = useCallback((provider: string, success: boolean, duration: number) => {
+    setRefreshLogs(prev => [...prev.slice(-49), { provider, timestamp: Date.now(), success, duration }]);
+  }, []);
 
   const refresh = useCallback(async () => {
     setIsRefreshing(true);
-    // Simulate API call
+    const start = Date.now();
     await new Promise(r => setTimeout(r, 800));
     setProviders(prev =>
       prev.map(p => ({
         ...p,
         usage: {
           ...p.usage,
-          sessionPercent: Math.min(100, p.usage.sessionPercent + Math.floor(Math.random() * 5 - 1)),
-          weeklyPercent: Math.min(100, p.usage.weeklyPercent + Math.floor(Math.random() * 3)),
+          sessionPercent: Math.min(100, Math.max(0, p.usage.sessionPercent + Math.floor(Math.random() * 7 - 2))),
+          weeklyPercent: Math.min(100, Math.max(0, p.usage.weeklyPercent + Math.floor(Math.random() * 4))),
         },
       }))
     );
+    const duration = Date.now() - start;
+    addLog('all', true, duration);
     setLastRefresh(Date.now());
+    setCountdown(refreshInterval);
     setIsRefreshing(false);
-  }, []);
+  }, [refreshInterval, addLog]);
 
   const refreshProvider = useCallback(async (id: string) => {
+    const start = Date.now();
     setIsRefreshing(true);
     await new Promise(r => setTimeout(r, 500));
     setProviders(prev =>
@@ -35,15 +61,52 @@ export function useProviders() {
               ...p,
               usage: {
                 ...p.usage,
-                sessionPercent: Math.min(100, p.usage.sessionPercent + Math.floor(Math.random() * 3)),
+                sessionPercent: Math.min(100, Math.max(0, p.usage.sessionPercent + Math.floor(Math.random() * 5 - 1))),
               },
             }
           : p
       )
     );
+    const duration = Date.now() - start;
+    const name = providers.find(p => p.id === id)?.name || id;
+    addLog(name, true, duration);
     setLastRefresh(Date.now());
     setIsRefreshing(false);
+  }, [providers, addLog]);
+
+  const disableProvider = useCallback((id: ProviderId) => {
+    setProviders(prev => prev.map(p => p.id === id ? { ...p, enabled: false } : p));
   }, []);
 
-  return { providers, isRefreshing, lastRefresh, refresh, refreshProvider };
+  // Auto-refresh
+  useEffect(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      refresh();
+    }, refreshInterval * 1000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [refreshInterval, refresh]);
+
+  // Countdown
+  useEffect(() => {
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    setCountdown(refreshInterval);
+    countdownRef.current = setInterval(() => {
+      setCountdown(prev => (prev <= 1 ? refreshInterval : prev - 1));
+    }, 1000);
+    return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
+  }, [refreshInterval, lastRefresh]);
+
+  return {
+    providers,
+    isRefreshing,
+    isLoading,
+    lastRefresh,
+    countdown,
+    refreshLogs,
+    refresh,
+    refreshProvider,
+    disableProvider,
+    setProviders,
+  };
 }
