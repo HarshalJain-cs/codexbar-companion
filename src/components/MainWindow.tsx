@@ -221,6 +221,16 @@ export default function MainWindow() {
                 ))}
               </div>
             )}
+
+            {/* Usage history chart */}
+            {!isLoading && sortedProviders.length > 0 && (
+              <div className="mt-3">
+                <UsageHistoryChart
+                  providers={sortedProviders}
+                  animationsEnabled={settings.animationsEnabled}
+                />
+              </div>
+            )}
           </div>
 
           {/* Status panel */}
