@@ -192,17 +192,41 @@
     animation-duration: 0s !important;
     transition-duration: 0s !important;
   }
+
+  /* Page transition */
+  .cb-page-enter {
+    animation: cb-slide-in-left 0.25s ease-out;
+  }
+  .cb-page-exit {
+    animation: cb-slide-out-right 0.25s ease-out;
+  }
+
+  /* Shimmer skeleton */
+  .cb-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 25%,
+      hsl(var(--muted-foreground) / 0.08) 50%,
+      hsl(var(--muted)) 75%
+    );
+    background-size: 200% 100%;
+    animation: cb-shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* Focus visible ring for keyboard navigation */
+  .cb-focusable:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-1 ring-offset-background;
+  }
+
+  /* Drag over indicator */
+  .cb-drag-over {
+    @apply border-primary/50 bg-primary/5;
+  }
 }
 
 @keyframes cb-slide-down {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 @keyframes cb-pulse {
@@ -211,12 +235,31 @@
 }
 
 @keyframes cb-fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cb-slide-in-left {
+  from { transform: translateX(-8px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes cb-slide-out-right {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(8px); opacity: 0; }
+}
+
+@keyframes cb-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Reduced motion system preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

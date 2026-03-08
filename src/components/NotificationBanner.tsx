@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { X, AlertTriangle, AlertCircle } from 'lucide-react';
 
 interface NotificationBannerProps {
@@ -37,6 +37,12 @@ export function useNotifications(
   const [notifications, setNotifications] = useState<
     { id: string; type: 'warning' | 'critical'; providerName: string; message: string }[]
   >([]);
+
+  // Serialize provider usage to avoid infinite loop from new array refs
+  const providerKey = useMemo(
+    () => providers.map(p => `${p.name}:${p.usage.sessionPercent}:${p.usage.weeklyPercent}`).join(','),
+    [providers]
+  );
 
   useEffect(() => {
     const newNotifs: typeof notifications = [];
@@ -77,7 +83,8 @@ export function useNotifications(
       }
     });
     setNotifications(newNotifs);
-  }, [providers, warningThreshold, criticalThreshold]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [providerKey, warningThreshold, criticalThreshold]);
 
   const dismiss = (id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
