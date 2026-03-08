@@ -145,6 +145,11 @@ export default function MainWindow() {
             countdown={countdown}
             onRefresh={refresh}
             onOpenSettings={() => setView('settings')}
+            theme={settings.theme}
+            onToggleTheme={() => {
+              const next: ThemeMode = settings.theme === 'dark' ? 'light' : settings.theme === 'light' ? 'system' : 'dark';
+              updateSettings({ theme: next });
+            }}
           />
 
           {/* Notification banners */}
