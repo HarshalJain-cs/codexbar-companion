@@ -27,7 +27,7 @@ function timeAgo(ts: number) {
 
 export default function StatusPanel({ providers }: StatusPanelProps) {
   const hasIssue = providers.some(p => p.statusInfo.status !== 'operational');
-  const [expanded, setExpanded] = useState(hasIssue);
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <div className="border-t border-border bg-card">
@@ -45,7 +45,7 @@ export default function StatusPanel({ providers }: StatusPanelProps) {
             {hasIssue ? 'Some providers have issues' : 'All systems operational'}
           </span>
         </div>
-        {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+        {expanded ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
       </button>
 
       {expanded && (
