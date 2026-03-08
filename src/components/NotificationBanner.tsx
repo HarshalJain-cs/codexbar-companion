@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { X, AlertTriangle, AlertCircle } from 'lucide-react';
 
 interface NotificationBannerProps {
