@@ -1,8 +1,9 @@
-import { AppSettings, SettingsTab } from '@/types';
+import { AppSettings, ProviderId, SettingsTab } from '@/types';
 import { useState, useRef } from 'react';
-import { ArrowLeft, Upload, Download, Bug } from 'lucide-react';
+import { ArrowLeft, Upload, Download, Bug, Shield, ShieldAlert, ShieldX, RefreshCw, CheckCircle2, XCircle, Key } from 'lucide-react';
 import NotificationPreview from './NotificationPreview';
 import ShortcutInput from './ShortcutInput';
+import { providerLogos } from '@/data/providerLogos';
 import { toast } from 'sonner';
 
 interface SettingsPageProps {
