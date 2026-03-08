@@ -336,6 +336,10 @@ function ProvidersTab({
     { id: 'cursor', name: 'Cursor' },
     { id: 'gemini', name: 'Gemini' },
     { id: 'copilot', name: 'Copilot' },
+    { id: 'windsurf', name: 'Windsurf' },
+    { id: 'kiro', name: 'Kiro' },
+    { id: 'augment', name: 'Augment' },
+    { id: 'devin', name: 'Devin' },
   ];
   return (
     <div className="space-y-2">
